@@ -1,0 +1,3 @@
+Some text key="key1" some more text value="it's a value in line 1"
+Some text key="key2" some more text value="it's a value in line 2" indeed
+Some text with multiple key="key3a" value="value3a" and key="key3b" value="value3b" yep

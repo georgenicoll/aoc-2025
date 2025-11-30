@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Debug SandBox",
+            "target": "SandBox",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug SandBox"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Release SandBox",
+            "target": "SandBox",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release SandBox"
+        }
+    ]
+}

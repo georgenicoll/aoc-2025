@@ -1,0 +1,76 @@
+import Testing
+@testable import Core
+
+@Test
+func testMissingFileThrowsFileNotFound() {
+  #expect(throws: FileError.fileNotFound) {
+    var context = [String]()
+    _ = try readFileLineByLine(
+      getSourceFileSibling(#filePath, "Files/missingFile.txt"),
+      &context,
+    ) { _, _ in }
+  }
+}
+
+private func runFileLoadTest(_ fileName: StaticString, _ expectedLines: [String]) {
+  var context = [String]()
+  let lines = try! readFileLineByLine(
+    getSourceFileSibling(#filePath, "Files/\(fileName)"),
+    &context,
+  ) { context, line in
+    context.append(line)
+  }
+  #expect(lines == expectedLines)
+}
+
+@Test
+func testLoadSingleLine() {
+  runFileLoadTest("singleLine.txt", ["This is a single line"])
+}
+
+@Test
+func testLoadMultipleWithEmptyLine() {
+  runFileLoadTest(
+    "multipleWithEmpty.txt",
+    [
+      "first line",
+      "",
+      "last line",
+    ]
+  )
+}
+
+@Test
+func testIgnoreEmptyLastLine() {
+  runFileLoadTest(
+    "emptyLastLine.txt",
+    [
+      "first line",
+      "second line",
+    ]
+  )
+}
+
+@Test(arguments: 1...100)
+func testLoadSmallBuffer(bufferSize: Int) {
+  var context = [String]()
+  let lines = try! readFileLineByLine(
+    getSourceFileSibling(#filePath, "Files/smallBuffer.txt"),
+    &context,
+    bufferSize: bufferSize,
+  ) { context, line in
+    context.append(line)
+  }
+  #expect(lines == [
+      "first line",
+      "second line",
+      "third line",
+      "fourth line",
+      "fifth line",
+      "sixth line",
+      "seventh line",
+      "eighth line",
+      "ninth line",
+      "tenth line",
+  ])
+}
