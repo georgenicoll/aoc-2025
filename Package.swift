@@ -10,12 +10,14 @@ let package = Package(
     .executable(name: "SandBox", targets: ["SandBox"]),
     .executable(name: "Skeleton", targets: ["Skeleton"]),
     .executable(name: "LoadIntoStruct", targets: ["LoadIntoStruct"]),
+    .executable(name: "LoadFromEntire", targets: ["LoadFromEntire"]),
   ],
   targets: [
     .target(name: "Core"),
     .executableTarget(name: "SandBox", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Skeleton", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "LoadIntoStruct", dependencies: ["Core"], exclude: ["Files/"]),
+    .executableTarget(name: "LoadFromEntire", dependencies: ["Core"], exclude: ["Files/"]),
 
     .testTarget(name: "CoreTests", dependencies: ["Core"], exclude: ["Files/"]),
   ]

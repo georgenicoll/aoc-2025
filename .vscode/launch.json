@@ -79,6 +79,46 @@
             "target": "LoadIntoStruct",
             "configuration": "release",
             "preLaunchTask": "swift: Build Release LoadIntoStruct"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Debug LoadFromEnt",
+            "target": "LoadFromEnt",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug LoadFromEnt"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Release LoadFromEnt",
+            "target": "LoadFromEnt",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release LoadFromEnt"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Debug LoadFromEntire",
+            "target": "LoadFromEntire",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug LoadFromEntire"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Release LoadFromEntire",
+            "target": "LoadFromEntire",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release LoadFromEntire"
         }
     ]
 }
