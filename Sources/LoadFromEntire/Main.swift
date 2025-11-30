@@ -20,11 +20,11 @@ private func parse(_ contents: String) -> [Appliance] {
   let applicanceRegex =
     /Name: (?<name>[^\s]+).*?Type: (?<type>[^\s]+).*?Age: (?<age>\d+)/
     .dotMatchesNewlines()
-  return contents.matches(of: applicanceRegex).map { regex in
+  return contents.matches(of: applicanceRegex).map { match in
     Appliance(
-      name: String(regex.name),
-      type: ApplianceType(rawValue: String(regex.type))!,
-      age: Int(regex.age)!
+      name: String(match.name),
+      type: ApplianceType(rawValue: String(match.type))!,
+      age: Int(match.age)!
     )
   }
 }

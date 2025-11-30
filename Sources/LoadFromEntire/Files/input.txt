@@ -1,0 +1,11 @@
+Name: bob
+Type: robot
+Age: 6
+
+Name: dave
+Type: toaster
+Age: 2
+
+Name: susan
+Type: fridge
+Age: 10
