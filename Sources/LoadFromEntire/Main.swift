@@ -16,7 +16,6 @@ struct Appliance {
 }
 
 private func parse(_ contents: String) -> [Appliance] {
-  //let applicanceRegex = /Name: (?<name>[^\s]+).*Type: (?<type>[^\s]+).*Age: (?<age>\d+)/
   let applicanceRegex =
     /Name: (?<name>[^\s]+).*?Type: (?<type>[^\s]+).*?Age: (?<age>\d+)/
     .dotMatchesNewlines()
