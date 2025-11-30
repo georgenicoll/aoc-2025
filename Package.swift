@@ -8,10 +8,15 @@ let package = Package(
   products: [
     .library(name: "Core", targets: ["Core"]),
     .executable(name: "SandBox", targets: ["SandBox"]),
+    .executable(name: "Skeleton", targets: ["Skeleton"]),
+    .executable(name: "LoadIntoStruct", targets: ["LoadIntoStruct"]),
   ],
   targets: [
     .target(name: "Core"),
     .executableTarget(name: "SandBox", dependencies: ["Core"], exclude: ["Files/"]),
+    .executableTarget(name: "Skeleton", dependencies: ["Core"], exclude: ["Files/"]),
+    .executableTarget(name: "LoadIntoStruct", dependencies: ["Core"], exclude: ["Files/"]),
+
     .testTarget(name: "CoreTests", dependencies: ["Core"], exclude: ["Files/"]),
   ]
 )

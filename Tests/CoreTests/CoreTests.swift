@@ -74,3 +74,43 @@ func testLoadSmallBuffer(bufferSize: Int) {
       "tenth line",
   ])
 }
+
+@Test
+func testReadEntireEmpty() {
+  let contents = try! readEntireFile(
+    getSourceFileSibling(#filePath, "Files/entireFileEmpty.txt")
+  )
+  #expect(contents == "")
+}
+
+@Test
+func testReadEntireFile1() {
+  let contents = try! readEntireFile(
+    getSourceFileSibling(#filePath, "Files/entireFile1.txt")
+  )
+  #expect(contents == """
+    This is a file
+    It should contain everything
+    """)
+}
+
+@Test
+func testReadEntireFile2() {
+  let contents = try! readEntireFile(
+    getSourceFileSibling(#filePath, "Files/entireFile2.txt")
+  )
+  #expect(contents == """
+    This is another file
+    It should
+    contain everything
+    again
+    when loaded
+    """)
+}
+
+@Test
+func testReadEntireFileNoFile() {
+  #expect(throws: FileError.fileNotFound) {
+    _ = try readEntireFile(getSourceFileSibling(#filePath, "Files/missingFile.txt"))
+  }
+}

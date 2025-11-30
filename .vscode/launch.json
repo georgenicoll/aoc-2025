@@ -19,6 +19,66 @@
             "target": "SandBox",
             "configuration": "release",
             "preLaunchTask": "swift: Build Release SandBox"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Debug Skeleton",
+            "target": "Skeleton",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug Skeleton"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Release Skeleton",
+            "target": "Skeleton",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release Skeleton"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Debug KL",
+            "target": "KL",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug KL"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Release KL",
+            "target": "KL",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release KL"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Debug LoadIntoStruct",
+            "target": "LoadIntoStruct",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug LoadIntoStruct"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Release LoadIntoStruct",
+            "target": "LoadIntoStruct",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release LoadIntoStruct"
         }
     ]
 }

@@ -60,3 +60,9 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# AOC Input files (except for our own testing)
+Sources/*/Files/*.txt
+!Sources/LoadIntoStruct/Files/input.txt
+!Sources/SandBox/Files/input.txt
+!Sources/Skeleton/Files/input.txt

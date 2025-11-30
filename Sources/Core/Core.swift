@@ -1,5 +1,44 @@
 import Foundation
 
+extension CustomStringConvertible {
+    public var description: String {
+        let text = "\(type(of: self)): "
+        let mirror = Mirror(reflecting: self)
+        let props = mirror.children.compactMap { element in
+            element.label.map { "\($0): \(element.value)" }
+        }.joined(separator: ", ")
+        return text + (props.isEmpty ? "()" : "(\(props))")
+    }
+}
+
+extension CustomDebugStringConvertible {
+    public var debugDescription: String {
+        let output = "\(type(of: self)): "
+        let mirror = Mirror(reflecting: self)
+
+        let properties = mirror.children.map { child in
+            if let label = child.label {
+                return "\(label): \(child.value)"
+            }
+            return "unknown"
+        }
+
+        // Also show properties from superclasses and private ones from the same file
+        var allProps: [String] = properties
+        var currentMirror: Mirror? = mirror.superclassMirror
+        while let superMirror = currentMirror {
+            let superProps = superMirror.children.compactMap { element in
+                element.label.map { "\($0): \(element.value)" }
+            }
+            allProps.append(contentsOf: superProps)
+            currentMirror = superMirror.superclassMirror
+        }
+
+        let propsString = allProps.isEmpty ? "()" : "(\(allProps.joined(separator: ", ")))"
+        return output + propsString
+    }
+}
+
 enum FileError: Error {
     case fileNotFound
 }
@@ -64,4 +103,15 @@ public func readFileLineByLine<Context>(
     }
 
     return ctx
+}
+
+public func readEntireFile(_ path: String) throws -> String {
+    guard let fileHandle = FileHandle(forReadingAtPath: path) else {
+        throw FileError.fileNotFound
+    }
+    defer {
+        fileHandle.closeFile()
+    }
+    let data = fileHandle.readDataToEndOfFile()
+    return String(data: data, encoding: .utf8)!
 }
