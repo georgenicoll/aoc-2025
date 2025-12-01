@@ -9,6 +9,7 @@ let package = Package(
     .library(name: "Core", targets: ["Core"]),
 
     .executable(name: "Day1", targets: ["Day1"]),
+    .executable(name: "Day2", targets: ["Day2"]),
 
     .executable(name: "SandBox", targets: ["SandBox"]),
     .executable(name: "Skeleton", targets: ["Skeleton"]),
@@ -19,6 +20,7 @@ let package = Package(
     .target(name: "Core"),
 
     .executableTarget(name: "Day1", dependencies: ["Core"], exclude: ["Files/"]),
+    .executableTarget(name: "Day2", dependencies: ["Core"], exclude: ["Files/"]),
 
     .executableTarget(name: "SandBox", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Skeleton", dependencies: ["Core"], exclude: ["Files/"]),
