@@ -115,3 +115,4 @@ public func readEntireFile(_ path: String) throws -> String {
     let data = fileHandle.readDataToEndOfFile()
     return String(data: data, encoding: .utf8)!
 }
+

@@ -29,29 +29,34 @@ fileprivate func runInstructions(instructions: [Instruction], numSlots: Int, sta
   var zeroCrossings = 0
   var current = startingPoint
 
-  func doStep(direction: Direction) {
-    switch direction {
-    case .l:
-      current = (current - 1) % numSlots
-    case .r:
-      current = (current + 1) % numSlots
-    }
-  }
-
-  // Just perform a step at a time to avoid worrying about remainders and mods
   for instruction in instructions {
-    // Do all but the last step for this instruction
-    for _ in 0..<(instruction.steps - 1){
-      doStep(direction: instruction.direction)
-      if current == 0 {
-        zeroCrossings += 1
+    let rotations = instruction.steps / numSlots
+    let remainder = instruction.steps % numSlots
+
+    zeroCrossings += rotations
+
+    func calcNextNoMod() -> Int {
+      switch instruction.direction {
+      case .l:
+        return current - remainder
+      case .r:
+        return current + remainder
       }
     }
-    // The last step for this instruction
-    doStep(direction: instruction.direction)
-    if current == 0 {
-      exactZeros += 1
+
+    let nextNoMod = calcNextNoMod()
+    if nextNoMod < 0 {
+      zeroCrossings += (current == 0 ? 0 : 1) // Crossed going left if we weren't at 0 so inc
     }
+    if nextNoMod == 0 || nextNoMod == numSlots {
+      exactZeros += (remainder > 0 || rotations > 0 ? 1 : 0) // Actually moved to get here then inc
+      zeroCrossings -= (remainder == 0 && rotations > 0 ? 1 : 0) // Moved a multiple to get here then dec the crossings
+    }
+    if nextNoMod > numSlots {
+      zeroCrossings += (current == 0 ? 0 : 1) // Crossed going right if we weren't at 0 so inc
+    }
+
+    current = (nextNoMod + numSlots) % numSlots // Ensure it's a +ve modulus
   }
 
   return (exactZeros, zeroCrossings)
@@ -61,6 +66,8 @@ fileprivate func runInstructions(instructions: [Instruction], numSlots: Int, sta
 struct App {
 
   static func main() {
+    // let instructions = parse(try! readEntireFile(getSourceFileSibling(#filePath, "Files/example.txt")))
+    // let instructions = parse(try! readEntireFile(getSourceFileSibling(#filePath, "Files/example2.txt")))
     let instructions = parse(try! readEntireFile(getSourceFileSibling(#filePath, "Files/input.txt")))
     let (exactZeros, zeroPasses) = runInstructions(instructions: instructions, numSlots: 100, startingPoint: 50)
     print("Exact Zeros (Part 1): \(exactZeros)")
