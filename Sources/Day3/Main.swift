@@ -1,10 +1,6 @@
 import Core
 import Foundation
 
-private func handleLine(_ context: inout [String], line: String) {
-  context.append(line)
-}
-
 enum Day3Error: Error {
   case digitNotFound
 }
@@ -53,7 +49,9 @@ struct App {
   static func main() {
     let file = getFileSibling(#filePath, "Files/input.txt")
     var ctx = [String]()
-    let banks = try! readFileLineByLine(file, &ctx, recv: handleLine)
+    let banks = try! readFileLineByLine(file, &ctx, recv: {
+      context, line in context.append(line)
+    })
 
     let part1 = banks.reduce(0) { sum, line in
       sum + maxValue(2, line)
