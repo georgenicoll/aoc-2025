@@ -68,7 +68,7 @@ struct App {
   static func main() {
     // let instructions = parse(try! readEntireFile(getSourceFileSibling(#filePath, "Files/example.txt")))
     // let instructions = parse(try! readEntireFile(getSourceFileSibling(#filePath, "Files/example2.txt")))
-    let instructions = parse(try! readEntireFile(getSourceFileSibling(#filePath, "Files/input.txt")))
+    let instructions = parse(try! readEntireFile(getFileSibling(#filePath, "Files/input.txt")))
     let (exactZeros, zeroPasses) = runInstructions(instructions: instructions, numSlots: 100, startingPoint: 50)
     print("Exact Zeros (Part 1): \(exactZeros)")
     print("Clicks in passing: \(zeroPasses)")

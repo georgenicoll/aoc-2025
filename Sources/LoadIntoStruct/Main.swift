@@ -80,7 +80,7 @@ struct App {
   static func main() {
     var ctx = Context()
     var context = try! readFileLineByLine(
-      getSourceFileSibling(#filePath, "Files/input.txt"),
+      getFileSibling(#filePath, "Files/input.txt"),
       &ctx,
       recv: handleLine,
     )

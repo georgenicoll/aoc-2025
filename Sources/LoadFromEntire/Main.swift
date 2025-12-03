@@ -32,7 +32,7 @@ private func parse(_ contents: String) -> [Appliance] {
 struct App {
 
   static func main() {
-    let parsed = parse(try! readEntireFile(getSourceFileSibling(#filePath, "Files/input.txt")))
+    let parsed = parse(try! readEntireFile(getFileSibling(#filePath, "Files/input.txt")))
     print(parsed)
   }
 

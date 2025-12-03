@@ -78,7 +78,7 @@ func sumOfInvalid(products: [ProductID], test: (Int) -> Bool) -> Int {
 struct App {
 
   static func main() {
-    let products = parse(try! readEntireFile(getSourceFileSibling(#filePath, "Files/input.txt")))
+    let products = parse(try! readEntireFile(getFileSibling(#filePath, "Files/input.txt")))
     print(sumOfInvalid(products: products, test: isInvalidPart1))
     print(sumOfInvalid(products: products, test: isInvalidPart2))
   }

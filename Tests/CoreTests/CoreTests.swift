@@ -6,7 +6,7 @@ func testMissingFileThrowsFileNotFound() {
   #expect(throws: FileError.fileNotFound) {
     var context = [String]()
     _ = try readFileLineByLine(
-      getSourceFileSibling(#filePath, "Files/missingFile.txt"),
+      getFileSibling(#filePath, "Files/missingFile.txt"),
       &context,
     ) { _, _ in }
   }
@@ -15,7 +15,7 @@ func testMissingFileThrowsFileNotFound() {
 private func runFileLoadTest(_ fileName: StaticString, _ expectedLines: [String]) {
   var context = [String]()
   let lines = try! readFileLineByLine(
-    getSourceFileSibling(#filePath, "Files/\(fileName)"),
+    getFileSibling(#filePath, "Files/\(fileName)"),
     &context,
   ) { context, line in
     context.append(line)
@@ -55,7 +55,7 @@ func testIgnoreEmptyLastLine() {
 func testLoadSmallBuffer(bufferSize: Int) {
   var context = [String]()
   let lines = try! readFileLineByLine(
-    getSourceFileSibling(#filePath, "Files/smallBuffer.txt"),
+    getFileSibling(#filePath, "Files/smallBuffer.txt"),
     &context,
     bufferSize: bufferSize,
   ) { context, line in
@@ -78,7 +78,7 @@ func testLoadSmallBuffer(bufferSize: Int) {
 @Test
 func testReadEntireEmpty() {
   let contents = try! readEntireFile(
-    getSourceFileSibling(#filePath, "Files/entireFileEmpty.txt")
+    getFileSibling(#filePath, "Files/entireFileEmpty.txt")
   )
   #expect(contents == "")
 }
@@ -86,7 +86,7 @@ func testReadEntireEmpty() {
 @Test
 func testReadEntireFile1() {
   let contents = try! readEntireFile(
-    getSourceFileSibling(#filePath, "Files/entireFile1.txt")
+    getFileSibling(#filePath, "Files/entireFile1.txt")
   )
   #expect(contents == """
     This is a file
@@ -97,7 +97,7 @@ func testReadEntireFile1() {
 @Test
 func testReadEntireFile2() {
   let contents = try! readEntireFile(
-    getSourceFileSibling(#filePath, "Files/entireFile2.txt")
+    getFileSibling(#filePath, "Files/entireFile2.txt")
   )
   #expect(contents == """
     This is another file
@@ -111,6 +111,6 @@ func testReadEntireFile2() {
 @Test
 func testReadEntireFileNoFile() {
   #expect(throws: FileError.fileNotFound) {
-    _ = try readEntireFile(getSourceFileSibling(#filePath, "Files/missingFile.txt"))
+    _ = try readEntireFile(getFileSibling(#filePath, "Files/missingFile.txt"))
   }
 }

@@ -43,7 +43,7 @@ enum FileError: Error {
     case fileNotFound
 }
 
-public func getSourceFileSibling(_ sourceFilePath: StaticString, _ fileName: String) -> String {
+public func getFileSibling(_ sourceFilePath: StaticString, _ fileName: String) -> String {
     let directory = URL(fileURLWithPath: String(describing: sourceFilePath))
         .deletingLastPathComponent()
     let file = directory.appendingPathComponent(fileName)
