@@ -96,6 +96,13 @@ public class Table<Element> {
         return rows[row][column]
     }
 
+    public func maybeElementAt(column: Int, row: Int) -> Element? {
+        if !isInBounds(column: column, row: row) {
+            return nil
+        }
+        return rows[row][column]
+    }
+
     public subscript(column: Int, row: Int) -> Element {
         get {
             try! elementAt(column: column, row: row)

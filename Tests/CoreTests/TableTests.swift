@@ -115,3 +115,23 @@ func isInBounds() {
   #expect(table.isInBounds(column: 2, row: 0) == false)
   #expect(table.isInBounds(column: 0, row: 2) == false)
 }
+
+@Test
+func maybeElementAt() {
+  let table = Table<Value>()
+  try! table.newRow()
+    .addElement(element: Value(thing: "rod"))
+    .addElement(element: Value(thing: "jane"))
+    .newRow()
+    .addElement(element: Value(thing: "freddy"))
+    .addElement(element: Value(thing: "bungle"))
+    .finaliseRow()
+  #expect(table.numRows == 2)
+  #expect(table.numColumns == 2)
+  #expect(table.maybeElementAt(column: 0, row: 0) == Value(thing: "rod"))
+  #expect(table.maybeElementAt(column: 1, row: 1) == Value(thing: "bungle"))
+  #expect(table.maybeElementAt(column: -1, row: 0) == nil)
+  #expect(table.maybeElementAt(column: 0, row: -1) == nil)
+  #expect(table.maybeElementAt(column: 2, row: 0) == nil)
+  #expect(table.maybeElementAt(column: 0, row: 2) == nil)
+}
