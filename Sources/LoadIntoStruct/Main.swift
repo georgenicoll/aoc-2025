@@ -78,12 +78,12 @@ private func handleLine(_ context: inout Context, line: String) {
 struct App {
 
   static func main() {
-    var ctx = Context()
     var context = try! readFileLineByLine(
-      getFileSibling(#filePath, "Files/input.txt"),
-      &ctx,
-      recv: handleLine,
+      file: getFileSibling(#filePath, "Files/input.txt"),
+      into: Context(),
+      handleLine,
     )
+
     context.addLoadingAppliance()
     print(context)
   }

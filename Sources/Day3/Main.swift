@@ -48,10 +48,7 @@ struct App {
 
   static func main() {
     let file = getFileSibling(#filePath, "Files/input.txt")
-    var ctx = [String]()
-    let banks = try! readFileLineByLine(file, &ctx, recv: {
-      context, line in context.append(line)
-    })
+    let banks = try! readFileLineByLine(file: file, into: [String]()) { $0.append($1) }
 
     let part1 = banks.reduce(0) { sum, line in
       sum + maxValue(2, line)

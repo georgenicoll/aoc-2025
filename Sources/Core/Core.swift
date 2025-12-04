@@ -51,10 +51,10 @@ public func getFileSibling(_ sourceFilePath: StaticString, _ fileName: String) -
 }
 
 public func readFileLineByLine<Context>(
-    _ path: String,
-    _ ctx: inout Context,
+    file path: String,
+    into ctx: Context,
     bufferSize: Int = 4096,
-    recv: (inout Context, String) -> Void,
+    _ recv: (inout Context, String) -> Void,
 ) throws -> Context {
     guard let fileHandle = FileHandle(forReadingAtPath: path) else {
         throw FileError.fileNotFound
@@ -65,6 +65,7 @@ public func readFileLineByLine<Context>(
 
     var leftover = ""
 
+    var context = ctx
     while true {
         let data = fileHandle.readData(ofLength: bufferSize)
         if data.isEmpty {
@@ -76,7 +77,7 @@ public func readFileLineByLine<Context>(
 
             //If the first is a new line and we had a left over, the left over was actually full - process it now
             if firstIsNewLine && !leftover.isEmpty {
-                recv(&ctx, leftover)
+                recv(&context, leftover)
                 leftover = ""
             }
 
@@ -91,7 +92,7 @@ public func readFileLineByLine<Context>(
                 if index == lines.count - 1 {
                     leftover = fullLine  // last one in lines...  we might have more coming so
                 } else {
-                    recv(&ctx, fullLine)
+                    recv(&context, fullLine)
                 }
             }
         }
@@ -99,10 +100,10 @@ public func readFileLineByLine<Context>(
 
     //Finally if there was any left over, then it's the last to be processed...
     if !leftover.isEmpty {
-        recv(&ctx, leftover)
+        recv(&context, leftover)
     }
 
-    return ctx
+    return context
 }
 
 public func readEntireFile(_ path: String) throws -> String {

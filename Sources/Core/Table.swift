@@ -7,17 +7,6 @@ public enum TableError: Error, Equatable {
 }
 
 
-public struct Coord: Equatable {
-    public let x: Int
-    public let y: Int
-
-    public init(x: Int, y: Int) {
-        self.x = x
-        self.y = y
-    }
-}
-
-
 public class Table<Element> {
     private var rows: [[Element]] = [[Element]]()
     private var width: Int? = nil

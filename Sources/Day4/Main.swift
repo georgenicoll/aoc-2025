@@ -21,7 +21,7 @@ private func handleLine(table: inout Table<Square>, line: String) {
 let surroundingSquareOffsets = [
   (-1, -1), (0, -1), (1, -1),
   (-1, 0),           (1, 0),
-  (-1, 1),  (0, 1),  (1, 1)
+  (-1, 1),  (0, 1),  (1, 1),
 ]
 
 private func numRollsInSurroundingSquares(_ table: Table<Square>, col: Int, row: Int) -> Int {
@@ -41,14 +41,10 @@ private func rollsThatCanBeRemoved(_ table: Table<Square>) -> [Coord] {
   for row in 0..<table.numRows {
     for col in 0..<table.numColumns {
       let thisSquare = table[col, row]
-      switch thisSquare {
-        case .empty:
-          continue
-        case .roll:
-          let numSurroundingRolls = numRollsInSurroundingSquares(table, col: col, row: row)
-          if numSurroundingRolls < 4 {
-            rolls.append(Coord(x: col, y: row))
-          }
+      if thisSquare == .roll {
+        if numRollsInSurroundingSquares(table, col: col, row: row) < 4 {
+          rolls.append(Coord(x: col, y: row))
+        }
       }
     }
   }
@@ -74,9 +70,8 @@ private func calculatePart2(_ table: inout Table<Square>) -> Int {
 struct App {
 
   static func main() {
-    var tab = Table<Square>()
     let file = getFileSibling(#filePath, "Files/input.txt")
-    var table = try! readFileLineByLine(file, &tab, recv: handleLine)
+    var table = try! readFileLineByLine(file: file, into: Table<Square>(), handleLine)
     try! table.finaliseRow() //fix last row
 
     let part1Rolls = rollsThatCanBeRemoved(table)

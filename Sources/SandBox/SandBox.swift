@@ -7,10 +7,9 @@ struct App {
 
   static func main() {
     let regex = /key="(?<key>[^"]*)".*?value="(?<value>[^"]*)"/
-    var context = [[String:String]]()
     let loaded = try! readFileLineByLine(
-      getFileSibling(#filePath, "Files/input.txt"),
-      &context,
+      file: getFileSibling(#filePath, "Files/input.txt"),
+      into: [[String:String]](),
     ) { context, line in
       var keyValues = [String:String]()
       for match in line.matches(of: regex) {
