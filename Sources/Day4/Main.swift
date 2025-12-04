@@ -26,7 +26,7 @@ let surroundingSquareOffsets = [
 
 private func numRollsInSurroundingSquares(_ table: Table<Square>, col: Int, row: Int) -> Int {
   var sum = 0
-  for (rowOffset, colOffset) in surroundingSquareOffsets {
+  for (colOffset, rowOffset) in surroundingSquareOffsets {
     if let square = table.maybeElementAt(column: col + colOffset, row: row + rowOffset) {
       if square == .roll {
         sum += 1
