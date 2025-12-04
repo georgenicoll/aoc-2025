@@ -7,9 +7,23 @@ public enum TableError: Error, Equatable {
 }
 
 
+public struct Coord: Equatable {
+    public let x: Int
+    public let y: Int
+
+    public init(x: Int, y: Int) {
+        self.x = x
+        self.y = y
+    }
+}
+
+
 public class Table<Element> {
     private var rows: [[Element]] = [[Element]]()
     private var width: Int? = nil
+
+    public init() {
+    }
 
     public var numRows: Int {
         get {
@@ -64,13 +78,21 @@ public class Table<Element> {
         return self
     }
 
+    public func isInBounds(column: Int, row: Int) -> Bool {
+        return column >= 0 && column < numColumns && row >= 0 && row < numRows
+    }
+
+    private func checkBounds(column: Int, row: Int) throws {
+        if column < 0 || column >= numColumns {
+            throw TableError.kind(.inconsistentState(message: "Column out of bounds"))
+        }
+        if row < 0 || row >= numRows {
+            throw TableError.kind(.inconsistentState(message: "Row out of bounds"))
+        }
+    }
+
     public func elementAt(column: Int, row: Int) throws -> Element {
-        if row >= rows.count {
-            throw TableError.kind(.inconsistentState(message: "Row index out of bounds \(row)"))
-        }
-        if column >= width! {
-            throw TableError.kind(.inconsistentState(message: "Column index out of bounds \(column)"))
-        }
+        try checkBounds(column: column, row: row)
         return rows[row][column]
     }
 
@@ -78,6 +100,26 @@ public class Table<Element> {
         get {
             try! elementAt(column: column, row: row)
         }
+        set {
+            try! checkBounds(column: column, row: row)
+            rows[row][column] = newValue
+        }
+    }
+
+    public func printTable() {
+        for row in rows {
+            for column in row {
+                print("\(column)", terminator: "")
+            }
+            print("")
+        }
+    }
+
+    public func copy() -> Table<Element> {
+        let copy = Table<Element>()
+        copy.rows = rows
+        copy.width = width
+        return copy
     }
 
 }
