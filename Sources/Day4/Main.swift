@@ -19,25 +19,25 @@ private func handleLine(table: inout Table<Square>, line: String) {
 }
 
 let surroundingSquareOffsets = [
-  (-1, -1), (-1, 0), (-1, 1),
-  (0, -1), (0, 1),
-  (1, -1), (1, 0), (1, 1)
+  (-1, -1), (0, -1), (1, -1),
+  (-1, 0),           (1, 0),
+  (-1, 1),  (0, 1),  (1, 1)
 ]
 
-private func rollsInSurroundingSquares(_ table: Table<Square>, col: Int, row: Int) -> [Coord] {
-  var rolls = [Coord]()
+private func numRollsInSurroundingSquares(_ table: Table<Square>, col: Int, row: Int) -> Int {
+  var sum = 0
   for (rowOffset, colOffset) in surroundingSquareOffsets {
-    let newRow = row + rowOffset
     let newCol = col + colOffset
-    if newRow < 0 || newRow >= table.numRows || newCol < 0 || newCol >= table.numColumns {
+    let newRow = row + rowOffset
+    if !table.isInBounds(column: newCol, row: newRow) {
       continue
     }
     let square = table[newCol, newRow]
     if square == .roll {
-      rolls.append(Coord(x: newCol, y: newRow))
+      sum += 1
     }
   }
-  return rolls
+  return sum
 }
 
 private func rollsThatCanBeRemoved(_ table: Table<Square>) -> [Coord] {
@@ -49,8 +49,8 @@ private func rollsThatCanBeRemoved(_ table: Table<Square>) -> [Coord] {
         case .empty:
           continue
         case .roll:
-          let surroundingRolls = rollsInSurroundingSquares(table, col: col, row: row)
-          if surroundingRolls.count < 4 {
+          let numSurroundingRolls = numRollsInSurroundingSquares(table, col: col, row: row)
+          if numSurroundingRolls < 4 {
             rolls.append(Coord(x: col, y: row))
           }
       }
