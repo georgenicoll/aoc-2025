@@ -43,7 +43,7 @@ func calcPart1(_ ranges: [Range], _ ids: [Int]) -> Int {
 }
 
 func calcPart2(_ ranges: [Range]) -> Int {
-  // sort into the start order
+  // order by range starts
   let sortedRanges = ranges.sorted(by: { $0.start < $1.start })
 
   var sum = 0
