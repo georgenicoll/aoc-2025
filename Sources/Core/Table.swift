@@ -15,15 +15,11 @@ public class Table<Element> {
     }
 
     public var numRows: Int {
-        get {
-            return rows.count
-        }
+        rows.count
     }
 
     public var numColumns: Int {
-        get {
-            return width ?? 0
-        }
+        width ?? 0
     }
 
     @discardableResult

@@ -11,7 +11,7 @@ extension XY {
 }
 
 
-public struct Coord: XY {
+public struct Coord: XY, Equatable {
     public let x: Int
     public let y: Int
 

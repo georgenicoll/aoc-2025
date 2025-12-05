@@ -4,19 +4,17 @@ import Testing
 @Test
 func testMissingFileThrowsFileNotFound() {
   #expect(throws: FileError.fileNotFound) {
-    var context = [String]()
     _ = try readFileLineByLine(
-      getFileSibling(#filePath, "Files/missingFile.txt"),
-      &context,
+      file: getFileSibling(#filePath, "Files/missingFile.txt"),
+      into: [String](),
     ) { _, _ in }
   }
 }
 
 private func runFileLoadTest(_ fileName: StaticString, _ expectedLines: [String]) {
-  var context = [String]()
   let lines = try! readFileLineByLine(
-    getFileSibling(#filePath, "Files/\(fileName)"),
-    &context,
+    file: getFileSibling(#filePath, "Files/\(fileName)"),
+    into: [String](),
   ) { context, line in
     context.append(line)
   }
@@ -53,10 +51,9 @@ func testIgnoreEmptyLastLine() {
 
 @Test(arguments: 1...100)
 func testLoadSmallBuffer(bufferSize: Int) {
-  var context = [String]()
   let lines = try! readFileLineByLine(
-    getFileSibling(#filePath, "Files/smallBuffer.txt"),
-    &context,
+    file: getFileSibling(#filePath, "Files/smallBuffer.txt"),
+    into: [String](),
     bufferSize: bufferSize,
   ) { context, line in
     context.append(line)
