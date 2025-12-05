@@ -19,7 +19,6 @@ func parseFile(_ file: String) -> ([Range], [Int]) {
   let rangeRegex = /^(?<start>\d+)-(?<end>\d+)$/.anchorsMatchLineEndings()
   let ranges = contents.matches(of: rangeRegex).map({ match in
     Range(start: Int(match.output.start)!, end: Int(match.output.end)!)
-
   })
 
   let idRegex = /^(?<id>\d+)$/.anchorsMatchLineEndings()
@@ -54,7 +53,8 @@ func calcPart2(_ ranges: [Range]) -> Int {
   //  - if the new range is non-overlapping, then count the range and start a new one
   //  - if the new range is overlapping, then extend the current one if it finishes later
   for range in sortedRanges[1...] {
-    if range.start > latestEnd { //new range
+    if range.start > latestEnd {
+      //new range
       sum += latestEnd - latestStart + 1
       latestStart = range.start
       latestEnd = range.end
