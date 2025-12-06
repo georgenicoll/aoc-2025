@@ -14,6 +14,7 @@ let package = Package(
     .executable(name: "Day4", targets: ["Day4"]),
     .executable(name: "Day5", targets: ["Day5"]),
     .executable(name: "Day6", targets: ["Day6"]),
+    .executable(name: "Day7", targets: ["Day7"]),
 
     .executable(name: "SandBox", targets: ["SandBox"]),
     .executable(name: "Skeleton", targets: ["Skeleton"]),
@@ -29,6 +30,7 @@ let package = Package(
     .executableTarget(name: "Day4", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Day5", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Day6", dependencies: ["Core"], exclude: ["Files/"]),
+    .executableTarget(name: "Day7", dependencies: ["Core"], exclude: ["Files/"]),
 
     .executableTarget(name: "SandBox", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Skeleton", dependencies: ["Core"], exclude: ["Files/"]),
