@@ -56,7 +56,7 @@ private func outputManifold(_ manifold: Manifold) {
 }
 
 /// Returns splits (part1) and number of paths (part2)
-private func part1(_ manifold: Manifold) -> (Int, Int) {
+private func solution(_ manifold: Manifold) -> (Int, Int) {
   //Set up the first row - we should have a beam at the startX
   manifold.grid[manifold.startX, 0] = Square.beam(number: 1)
 
@@ -72,34 +72,34 @@ private func part1(_ manifold: Manifold) -> (Int, Int) {
       if case .beam(let number) = manifold.grid[col, previousRow] {
         //it's a beam on the previous row - should we split it?
         switch manifold.grid[col, currentRow] {
-        case .space: //Beam continues
+        case .space:
+          //Beam continues to this space
           manifold.grid[col, currentRow] = .beam(number: number)
-        case .splitter: //Beam is split into 2 - we need combine all paths to this square
+        case .splitter:
+          //Beam needs to be split into 2
           splits += 1
 
           func addBeam(_ col: Int, _ row: Int, _ beamBeingSplitNumber: Int, _ countPreviousRow: Bool) {
-            //Check if beam is coming in on this column already from above - this should also be added to the number
-            let previousRowNumber: Int
-            if !countPreviousRow {
-              previousRowNumber = 0
-            } else if case .beam(let number) = manifold.grid[col, row - 1] {
-              previousRowNumber = number
-            } else {
-              previousRowNumber = 0
+            //Take account of a beam in the previous - if we've been asked to do so
+            var beamOnPreviousRowNumber = 0
+            if case let .beam(number) = manifold.grid[col, row - 1], countPreviousRow {
+              beamOnPreviousRowNumber = number
             }
 
             //Now make sure we combine the left and rights and previous together
             if case .beam(let number) = manifold.grid[col, row] {
-              manifold.grid[col, row] = .beam(number: number + beamBeingSplitNumber + previousRowNumber)
+              manifold.grid[col, row] = .beam(number: number + beamBeingSplitNumber + beamOnPreviousRowNumber)
             } else {
-              manifold.grid[col, row] = .beam(number: beamBeingSplitNumber + previousRowNumber)
+              manifold.grid[col, row] = .beam(number: beamBeingSplitNumber + beamOnPreviousRowNumber)
             }
           }
 
+          //Calculate the beam to the left of the splitter
           addBeam(col - 1, currentRow, number, false)
-          addBeam(col + 1, currentRow, number, true) //only include the previous row beam when moving right
+          //Calculate the beam to the right of the splitter
+          addBeam(col + 1, currentRow, number, true /*only include on the rhs to avoid double counting*/)
         case .beam:
-          //Shouldn't be but do nothing
+          //Shouldn't be a beam here on the current row yet but do nothing anyway
           break
         }
       }
@@ -129,7 +129,7 @@ struct App {
 
     outputManifold(manifold)
 
-    let (part1, part2) = part1(manifold)
+    let (part1, part2) = solution(manifold)
     print(part1)
     print(part2)
   }
