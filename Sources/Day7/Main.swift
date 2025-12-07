@@ -27,13 +27,6 @@ enum Square: CustomStringConvertible {
 class Manifold {
   var grid: Table<Square> = Table<Square>()
   var startX: Int = -1
-
-  func copy() -> Manifold {
-    let manifold = Manifold()
-    manifold.grid = self.grid.copy()
-    manifold.startX = self.startX
-    return manifold
-  }
 }
 
 private func handleLine(_ manifold: inout Manifold, line: String) {
