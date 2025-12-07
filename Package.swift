@@ -22,6 +22,10 @@ let package = Package(
     .executable(name: "LoadIntoStruct", targets: ["LoadIntoStruct"]),
     .executable(name: "LoadFromEntire", targets: ["LoadFromEntire"]),
   ],
+  dependencies: [
+    // .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0"),
+    .package(url: "https://github.com/apple/swift-collections", from: "1.0.0")
+  ],
   targets: [
     .target(name: "Core"),
 
@@ -34,7 +38,10 @@ let package = Package(
     .executableTarget(name: "Day7", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Day8", dependencies: ["Core"], exclude: ["Files/"]),
 
-    .executableTarget(name: "SandBox", dependencies: ["Core"], exclude: ["Files/"]),
+    .executableTarget(name: "SandBox", dependencies: [
+      "Core",
+      .product(name: "Collections", package: "swift-collections")
+    ], exclude: ["Files/"]),
     .executableTarget(name: "Skeleton", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "LoadIntoStruct", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "LoadFromEntire", dependencies: ["Core"], exclude: ["Files/"]),
