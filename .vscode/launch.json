@@ -279,6 +279,26 @@
             "target": "Day7",
             "configuration": "release",
             "preLaunchTask": "swift: Build Release Day7"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Debug Day8",
+            "target": "Day8",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug Day8"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc-2025}",
+            "name": "Release Day8",
+            "target": "Day8",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release Day8"
         }
     ]
 }
