@@ -181,15 +181,14 @@ struct App {
     }
     print(part1)
 
-    let part2 = solution(coords) { rep, connectedBoxes, boxA, boxB in
-      if connectedBoxes.count == coords.count {
-        print("Stopping after connecting \(boxA.coord) and \(boxB.coord)")
-        print("Distance: \(boxA.coord.x * boxB.coord.x)")
-        return true
+    let _ = solution(coords) { rep, connectedBoxes, boxA, boxB in
+      if connectedBoxes.count < coords.count {
+        return false
       }
-      return false
+      print("Stopping after connecting \(boxA.coord) and \(boxB.coord)")
+      print("Distance: \(boxA.coord.x * boxB.coord.x)")
+      return true
     }
-    print(part2)
   }
 
 }
