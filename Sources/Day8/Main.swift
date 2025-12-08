@@ -59,6 +59,31 @@ private func createJunctionBoxes(_ coords: [Coord3]) -> [JunctionBox] {
   return junctionBoxes
 }
 
+class BoxDistance {
+  var boxA: JunctionBox
+  var boxB: JunctionBox
+  let distance: Double
+
+  init(_ boxA: JunctionBox, _ boxB: JunctionBox, _ distance: Double) {
+    self.boxA = boxA
+    self.boxB = boxB
+    self.distance = distance
+  }
+}
+
+///Calculate all of the distances from one box to another and return the list ordered by shortest first
+private func calculateDistances(_ junctionBoxes: inout [JunctionBox]) -> [BoxDistance] {
+  var distances = [BoxDistance]()
+  for (i, box1) in junctionBoxes.dropLast().enumerated() {
+    for j in i+1..<junctionBoxes.count {
+      let box2 = junctionBoxes[j]
+      distances.append(BoxDistance(box1, box2, box1.distanceTo(box2)))
+    }
+  }
+  distances.sort { $0.distance < $1.distance }
+  return distances
+}
+
 private func connectBoxes(
   _ circuits: inout [Int:SetWrapper<Int>],
   _ junctionBoxes: inout [JunctionBox],
@@ -115,40 +140,19 @@ private func connectBoxes(
 
 private func solution(
   _ coords: [Coord3],
-  numConnections: Int,
-  stopFunc: (inout Set<Int>, JunctionBox, JunctionBox) -> Bool,
+  stopFunc: (Int, inout Set<Int>, JunctionBox, JunctionBox) -> Bool,
 ) -> Int {
   var connectedBoxes = Set<Int>()
   var circuits = [Int:SetWrapper<Int>]()
   var junctionBoxes = createJunctionBoxes(coords)
+  let distances: [BoxDistance] = calculateDistances(&junctionBoxes)
 
-  for rep in 0..<numConnections { // need numConnections connections to be made
-    if rep % 50 == 0 {
-      print("Rep: \(rep)")
-    }
-    //Find next closest connection
-    var currentMin: Double? = nil
-    var boxA: JunctionBox? = nil
-    var boxB: JunctionBox? = nil
-    for (id1, box1) in junctionBoxes.enumerated() {
-      for (id2, box2) in junctionBoxes.enumerated() {
-        if id1 == id2 { continue }
-        if box1.connections.contains(id2) { continue }
+  for (rep, distance) in distances.enumerated() {
+    connectBoxes(&circuits, &junctionBoxes, &distance.boxA, &distance.boxB)
+    connectedBoxes.insert(distance.boxA.id)
+    connectedBoxes.insert(distance.boxB.id)
 
-        let distance = box1.distanceTo(box2)
-        if currentMin == nil || distance < currentMin! {
-          currentMin = distance
-          boxA = box1
-          boxB = box2
-        }
-      }
-    }
-
-    connectBoxes(&circuits, &junctionBoxes, &boxA!, &boxB!)
-    connectedBoxes.insert(boxA!.id)
-    connectedBoxes.insert(boxB!.id)
-
-    if stopFunc(&connectedBoxes, boxA!, boxB!) {
+    if stopFunc(rep + 1, &connectedBoxes, distance.boxA, distance.boxB) {
       break
     }
   }
@@ -167,23 +171,24 @@ struct App {
 
   static func main() {
     // let file = getFileSibling(#filePath, "Files/example.txt")
+    // let stopAfterReps = 10
     let file = getFileSibling(#filePath, "Files/input.txt")
+    let stopAfterReps = 1000
     let coords = try! readFileLineByLine(file: file, into: [Coord3](), parseLine)
 
-    // print(coords)
+    let part1 = solution(coords) { rep, _, _, _ in
+      return rep >= stopAfterReps
+    }
+    print(part1)
 
-    // let part1 = solution(coords, numConnections: 10)
-    // let part1 = solution(coords, numConnections: 1000)
-    // print(part1)
-
-    let part2 = solution(coords, numConnections: Int.max, stopFunc: { connectedBoxes, boxA, boxB in
+    let part2 = solution(coords) { rep, connectedBoxes, boxA, boxB in
       if connectedBoxes.count == coords.count {
         print("Stopping after connecting \(boxA.coord) and \(boxB.coord)")
         print("Distance: \(boxA.coord.x * boxB.coord.x)")
         return true
       }
       return false
-    })
+    }
     print(part2)
   }
 
