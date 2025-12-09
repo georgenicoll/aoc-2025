@@ -10,12 +10,6 @@ private func handleLine(_ coords: inout [Coord], line: String) {
   }
 }
 
-extension Coord {
-  func area(to other: Coord) -> Int {
-    (abs(x - other.x) + 1) * (abs(y - other.y) + 1)
-  }
-}
-
 private func part1(_ coords: [Coord]) -> Int {
   var maxArea = -1
   for (i, coord1) in coords.enumerated() {

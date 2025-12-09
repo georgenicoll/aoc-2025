@@ -2,16 +2,6 @@ import Core
 import Foundation
 import RegexBuilder
 
-struct Coord3: CustomStringConvertible {
-  let x: Int
-  let y: Int
-  let z: Int
-
-  var description: String {
-    return "(\(x),\(y),\(z))"
-  }
-}
-
 let notSet = -1
 
 class JunctionBox {
