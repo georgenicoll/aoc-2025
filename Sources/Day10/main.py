@@ -5,20 +5,18 @@ def solve(buttonses, joltages) -> float:
     # Adapted from https://coin-or.github.io/pulp/CaseStudies/a_blending_problem.html
     prob = LpProblem("Joltages", LpMinimize)
 
-    # variables are the number of presses of each button - same number of these as number of buttons(es)
+    # variables represent the number of presses of each button - same number of these as number of buttons(es)
     variables = [ LpVariable(f"butt_{i}", lowBound=0, cat=LpInteger) for i in range(len(buttonses)) ]
 
     # problem data - objective first
-    prob += lpSum(variables), "Minimise the number of presses"
+    prob += lpSum(variables), "Minimise the total number of button presses"
 
-    # problem data - constraints - these are for each button and it's equivalent joltage
+    # problem data - constraints - these are for each button and its equivalent joltage
     # we enter them 'vertically', i.e. each column adds up to the wanted joltage
     for i in range(len(joltages)):
-        button_variables = []
-        for j in range(len(buttonses)):
-            buttons = buttonses[j]
-            if i in buttons:
-                button_variables.append(variables[j])
+        # Include the button variable if the buttons has this joltage in it
+        button_variables = [ variables[j] for j, buttons in enumerate(buttonses) if i in buttons ]
+        # All of these buttons will need to sum to the joltage value
         prob += lpSum(button_variables) == joltages[i], f"joltage_{i}"
 
     # write it to a file
