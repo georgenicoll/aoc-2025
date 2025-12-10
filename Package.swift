@@ -40,7 +40,11 @@ let package = Package(
     .executableTarget(name: "Day7", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Day8", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Day9", dependencies: ["Core"], exclude: ["Files/"]),
-    .executableTarget(name: "Day10", dependencies: ["Core"], exclude: ["Files/"]),
+    .executableTarget(name: "Day10", dependencies: ["Core"], exclude: [
+      "Files/",
+      "requirements.txt",
+      "main.py",
+    ]),
 
     .executableTarget(name: "SandBox", dependencies: [
       "Core",
