@@ -69,3 +69,7 @@ Sources/*/Files/*.txt
 !Sources/SandBox/Files/input.txt
 !Sources/Skeleton/Files/example.txt
 !Sources/Skeleton/Files/input.txt
+
+# Python virtual environment for using linear programming solvers
+venv/
+*.lp
