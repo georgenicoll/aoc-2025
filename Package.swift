@@ -18,6 +18,8 @@ let package = Package(
     .executable(name: "Day8", targets: ["Day8"]),
     .executable(name: "Day9", targets: ["Day9"]),
     .executable(name: "Day10", targets: ["Day10"]),
+    .executable(name: "Day11", targets: ["Day11"]),
+    .executable(name: "Day12", targets: ["Day12"]),
 
     .executable(name: "SandBox", targets: ["SandBox"]),
     .executable(name: "Skeleton", targets: ["Skeleton"]),
@@ -45,10 +47,12 @@ let package = Package(
       "requirements.txt",
       "main.py",
     ]),
+    .executableTarget(name: "Day11", dependencies: ["Core"], exclude: ["Files/"]),
+    .executableTarget(name: "Day12", dependencies: ["Core"], exclude: ["Files/"]),
 
     .executableTarget(name: "SandBox", dependencies: [
       "Core",
-      .product(name: "Collections", package: "swift-collections")
+      .product(name: "Collections", package: "swift-collections"),
     ], exclude: ["Files/"]),
     .executableTarget(name: "Skeleton", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "LoadIntoStruct", dependencies: ["Core"], exclude: ["Files/"]),
