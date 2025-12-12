@@ -12,7 +12,7 @@ extension XY {
     }
 }
 
-public struct Coord: XY, Equatable, Hashable, CustomStringConvertible {
+public struct Coord: XY, Equatable, Hashable, CustomStringConvertible, Sendable {
     public let x: Int
     public let y: Int
 
