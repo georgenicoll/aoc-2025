@@ -177,16 +177,22 @@ struct State {
   let grid: Table<Character>
   let remainingShapes: [Int]
   let remainingToPlace: Int
+  let lastPlacement: Coord
 }
 
 class States {
   var states: [State] = []
 }
 
-private func findNextPlacement(_ grid: Table<Character>, _ coords: inout [Coord]) -> (x: Int, y: Int)? {
+let shapeDimension = 3
+
+private func findNextPlacement(_ grid: Table<Character>, _ lastPlacement: Coord, _ coords: inout [Coord]) -> (x: Int, y: Int)? {
   //shapes are 3x3 centered around 0,0 - we can't put them right at the edge - find the lowest y then x we can place it
-  for y in 1..<(grid.numRows - 1) {
-    inner: for x in 1..<(grid.numColumns - 1) {
+  //but there is no point in going all the way to the start - just look a couple back from the last placement
+  let startY = max(1, lastPlacement.y - shapeDimension)
+  let startX = 1 //always start at the left
+  for y in startY..<(grid.numRows - 1) {
+    inner: for x in startX..<(grid.numColumns - 1) {
       for coord in coords {
         let newX = x + coord.x
         let newY = y + coord.y
@@ -206,6 +212,8 @@ private func placeShape(_ grid: Table<Character>, _ coords: inout [Coord], _ x: 
   }
 }
 
+let maxStates = 100
+
 private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puzzle) -> Bool {
   let grid = createInitialGrid(width: puzzle.width, height: puzzle.height)
   // grid.output()
@@ -213,9 +221,15 @@ private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puz
   var currentStates = States()
   var nextStates = States()
 
-  currentStates.states.append(State(grid: grid, remainingShapes: puzzle.shapes, remainingToPlace: puzzle.shapes.reduce(0) { $0 + $1 }))
+  currentStates.states.append(State(
+    grid: grid,
+    remainingShapes: puzzle.shapes,
+    remainingToPlace: puzzle.shapes.reduce(0) { $0 + $1 },
+    lastPlacement: Coord(x: -1, y: -1),
+  ))
 
   while !currentStates.states.isEmpty {
+    // print("states size: \(currentStates.states.count)")
     for state in currentStates.states {
       // state.grid.output()
       //Try placing one of each shape we have left in all it's orientations in this state
@@ -225,7 +239,7 @@ private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puz
         }
         let configurations = shapeConfigurations[shapeIndex]
         for var configuration in configurations.configurations {
-          if let (x, y) = findNextPlacement(state.grid, &configuration) {
+          if let (x, y) = findNextPlacement(state.grid, state.lastPlacement, &configuration) {
             let newGrid = state.grid.copy()
             placeShape(newGrid, &configuration, x, y, shapeConfigurations[shapeIndex].gridId)
             if state.remainingToPlace == 1 {
@@ -235,7 +249,12 @@ private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puz
             }
             var newRemainingShapes = state.remainingShapes
             newRemainingShapes[shapeIndex] -= 1
-            nextStates.states.append(State(grid: newGrid, remainingShapes: newRemainingShapes, remainingToPlace: state.remainingToPlace - 1))
+            nextStates.states.append(State(
+              grid: newGrid,
+              remainingShapes: newRemainingShapes,
+              remainingToPlace: state.remainingToPlace - 1,
+              lastPlacement: Coord(x: x, y: y),
+            ))
           }
         }
       }
@@ -247,7 +266,11 @@ private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puz
     nextStates.states.removeAll(keepingCapacity: true)
 
     //Sort the current states and throw away the ones we don't want to keep
-
+    //Initial attempt, sort to choose lower ys before lower xs
+    currentStates.states.sort { 100 * $0.lastPlacement.y + $0.lastPlacement.x < 100 * $1.lastPlacement.y + $1.lastPlacement.x }
+    if currentStates.states.count > maxStates {
+        currentStates.states.removeSubrange(maxStates...)
+    }
   }
 
   //Get here we couldn't do it
@@ -270,8 +293,10 @@ struct App {
     let shapeConfigurations = calculateDistinctShapeConfigurations(basicShapes)
     // print(shapeConfigurations)
 
-    let result = puzzles.reduce(0) { acc, puzzle in
-      return acc + (solvable(shapeConfigurations, puzzle) ? 1 : 0)
+    let result = puzzles.enumerated().reduce(0) { acc, indexAndPuzzle in
+      let solvable = solvable(shapeConfigurations, indexAndPuzzle.element)
+      print("Puzzle \(indexAndPuzzle.offset): \(solvable)")
+      return acc + (solvable ? 1 : 0)
     }
     print(result)
   }
