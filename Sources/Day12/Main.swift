@@ -228,9 +228,9 @@ private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puz
           if let (x, y) = findNextPlacement(state.grid, &configuration) {
             let newGrid = state.grid.copy()
             placeShape(newGrid, &configuration, x, y, shapeConfigurations[shapeIndex].gridId)
-            newGrid.output()
             if state.remainingToPlace == 1 {
               //That's everything - woop woop
+              newGrid.output()
               return true
             }
             var newRemainingShapes = state.remainingShapes
@@ -245,6 +245,9 @@ private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puz
     currentStates = nextStates
     nextStates = tempStates
     nextStates.states.removeAll(keepingCapacity: true)
+
+    //Sort the current states and throw away the ones we don't want to keep
+
   }
 
   //Get here we couldn't do it
@@ -255,17 +258,17 @@ private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puz
 struct App {
 
   static func main() {
-    let file = getFileSibling(#filePath, "Files/example.txt")
-    //let file = getFileSibling(#filePath, "Files/input.txt")
+    //let file = getFileSibling(#filePath, "Files/example.txt")
+    let file = getFileSibling(#filePath, "Files/input.txt")
 
     let basicShapes = loadBasicShapes(try! readEntireFile(file))
-    print(basicShapes)
+    // print(basicShapes)
 
     let puzzles = try! readFileLineByLine(file: file, into: [Puzzle](), loadPuzzle)
-    print(puzzles)
+    // print(puzzles)
 
     let shapeConfigurations = calculateDistinctShapeConfigurations(basicShapes)
-    print(shapeConfigurations)
+    // print(shapeConfigurations)
 
     let result = puzzles.reduce(0) { acc, puzzle in
       return acc + (solvable(shapeConfigurations, puzzle) ? 1 : 0)
