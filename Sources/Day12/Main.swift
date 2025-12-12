@@ -81,15 +81,17 @@ private func loadPuzzle(_ puzzles: inout [Puzzle], line: String) {
 
 class ShapeConfiguration: CustomStringConvertible {
   let id: Int
+  let gridId: Character
   let configurations: [[Coord]]
 
   init(id: Int, configurations: [[Coord]]) {
     self.id = id
+    self.gridId = Character(UnicodeScalar(id + 48)!)
     self.configurations = configurations
   }
 
   var description: String {
-    "Shape \(id): \(configurations)"
+    "Shape \(id) (\(gridId)): \(configurations)"
   }
 }
 
@@ -150,9 +152,107 @@ private func calculateDistinctShapeConfigurations(_ basicShapes: [BasicShape]) -
   }
 }
 
+let blank = Character(".")
+
+private func createInitialGrid(width: Int, height: Int) -> Table<Character> {
+  let table = Table<Character>()
+  for _ in 0..<height {
+    try! table.newRow()
+    for _ in 0..<width {
+      try! table.addElement(element: blank)
+    }
+  }
+  try! table.finaliseRow()
+  return table
+}
+
+extension Table {
+  func output() {
+    self.printTable()
+    print("")
+  }
+}
+
+struct State {
+  let grid: Table<Character>
+  let remainingShapes: [Int]
+  let remainingToPlace: Int
+}
+
+class States {
+  var states: [State] = []
+}
+
+private func findNextPlacement(_ grid: Table<Character>, _ coords: inout [Coord]) -> (x: Int, y: Int)? {
+  //shapes are 3x3 centered around 0,0 - we can't put them right at the edge - find the lowest y then x we can place it
+  for y in 1..<(grid.numRows - 1) {
+    inner: for x in 1..<(grid.numColumns - 1) {
+      for coord in coords {
+        let newX = x + coord.x
+        let newY = y + coord.y
+        if grid[newX,newY] != blank {
+          continue inner //can't do this configuration
+        }
+      }
+      return (x, y)
+    }
+  }
+  return nil
+}
+
+private func placeShape(_ grid: Table<Character>, _ coords: inout [Coord], _ x: Int, _ y: Int, _ shapeId: Character) {
+  for coord in coords {
+    grid[x + coord.x, y + coord.y] = shapeId
+  }
+}
+
+private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puzzle) -> Bool {
+  let grid = createInitialGrid(width: puzzle.width, height: puzzle.height)
+  // grid.output()
+
+  var currentStates = States()
+  var nextStates = States()
+
+  currentStates.states.append(State(grid: grid, remainingShapes: puzzle.shapes, remainingToPlace: puzzle.shapes.reduce(0) { $0 + $1 }))
+
+  while !currentStates.states.isEmpty {
+    for state in currentStates.states {
+      // state.grid.output()
+      //Try placing one of each shape we have left in all it's orientations in this state
+      for shapeIndex in 0..<state.remainingShapes.count {
+        if state.remainingShapes[shapeIndex] == 0 { //no more of this shape
+          continue
+        }
+        let configurations = shapeConfigurations[shapeIndex]
+        for var configuration in configurations.configurations {
+          if let (x, y) = findNextPlacement(state.grid, &configuration) {
+            let newGrid = state.grid.copy()
+            placeShape(newGrid, &configuration, x, y, shapeConfigurations[shapeIndex].gridId)
+            newGrid.output()
+            if state.remainingToPlace == 1 {
+              //That's everything - woop woop
+              return true
+            }
+            var newRemainingShapes = state.remainingShapes
+            newRemainingShapes[shapeIndex] -= 1
+            nextStates.states.append(State(grid: newGrid, remainingShapes: newRemainingShapes, remainingToPlace: state.remainingToPlace - 1))
+          }
+        }
+      }
+    }
+
+    let tempStates = currentStates
+    currentStates = nextStates
+    nextStates = tempStates
+    nextStates.states.removeAll(keepingCapacity: true)
+  }
+
+  //Get here we couldn't do it
+  return false
+}
+
 @main
 struct App {
-
 
   static func main() {
     let file = getFileSibling(#filePath, "Files/example.txt")
@@ -166,6 +266,11 @@ struct App {
 
     let shapeConfigurations = calculateDistinctShapeConfigurations(basicShapes)
     print(shapeConfigurations)
+
+    let result = puzzles.reduce(0) { acc, puzzle in
+      return acc + (solvable(shapeConfigurations, puzzle) ? 1 : 0)
+    }
+    print(result)
   }
 
 }
