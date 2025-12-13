@@ -254,24 +254,31 @@ class States {
 
 let shapeDimension = 3
 
-private func findNextPlacement(_ grid: Grid, _ lastPlacement: Coord, _ shape: CompactShape) -> (x: Int, y: Int)? {
+private func findNextPlacement(_ grid: Grid, _ startAtX: Int?, _ lastY: Int, _ shape: CompactShape) -> (x: Int, y: Int)? {
+  if lastY + 1 > grid.rows.count - 1 {
+    return nil
+  }
   //shapes are 3x3 centered around 0,0 - we can't put them right at the edge - find the lowest y then x we can place it
   //but there is no point in going all the way to the start - just look a couple back from the last placement
-  let startY = max(1, lastPlacement.y - shapeDimension)
-  let startX = 1 //always start at the left
+  let startY = max(1, lastY)
+  let startX = startAtX ?? 1 //start at the left if no startX specified
+  if startX + 1 > grid.width - 1 {
+    return nil
+  }
   for y in startY..<(grid.rows.count - 1) {
     inner: for x in startX..<(grid.width - 1) {
+      let shiftAmount = 64 - shapeDimension - x + 1
       //Hardcoding this to 3 rows in the shape
-      let topRow: UInt64 = UInt64(shape.rows[0]) << (64 - shapeDimension - x + 1)
+      let topRow: UInt64 = UInt64(shape.rows[0]) << shiftAmount
       //We can only fit bitwise and returns a 0
       if (topRow & grid.rows[y - 1]) != 0 {
         continue inner
       }
-      let middleRow: UInt64 = UInt64(shape.rows[1]) << (64 - shapeDimension - x + 1)
+      let middleRow: UInt64 = UInt64(shape.rows[1]) << shiftAmount
       if (middleRow & grid.rows[y]) != 0 {
         continue inner
       }
-      let bottomRow: UInt64 = UInt64(shape.rows[2]) << (64 - shapeDimension - x + 1)
+      let bottomRow: UInt64 = UInt64(shape.rows[2]) << shiftAmount
       if (bottomRow & grid.rows[y + 1]) != 0 {
         continue inner
       }
@@ -285,11 +292,12 @@ private func findNextPlacement(_ grid: Grid, _ lastPlacement: Coord, _ shape: Co
 private func placeShape(_ grid: Grid, _ shape: CompactShape, _ x: Int, _ y: Int) {
   //Hardcoding this to 3 rows in the shape
   //bitwise or for the new value
-  let topRow: UInt64 = UInt64(shape.rows[0]) << (64 - shapeDimension - x + 1)
+  let shiftAmount = 64 - shapeDimension - x + 1
+  let topRow: UInt64 = UInt64(shape.rows[0]) << shiftAmount
   grid.rows[y - 1] = grid.rows[y - 1] | topRow
-  let middleRow: UInt64 = UInt64(shape.rows[1]) << (64 - shapeDimension - x + 1)
+  let middleRow: UInt64 = UInt64(shape.rows[1]) << shiftAmount
   grid.rows[y] = grid.rows[y] | middleRow
-  let bottomRow: UInt64 = UInt64(shape.rows[2]) << (64 - shapeDimension - x + 1)
+  let bottomRow: UInt64 = UInt64(shape.rows[2]) << shiftAmount
   grid.rows[y + 1] = grid.rows[y + 1] | bottomRow
 }
 
@@ -303,7 +311,7 @@ private func precheck(_ configurations: [CompactConfiguration], _ puzzle: Puzzle
   return totalSquaresNeeded <= puzzle.width * puzzle.height
 }
 
-let maxStates = 100
+let maxStates = 250
 
 private func solvable(_ compactConfigurations: [CompactConfiguration], _ puzzle: Puzzle) -> Bool {
   // if !precheck(compactConfigurations, puzzle) {
@@ -335,7 +343,11 @@ private func solvable(_ compactConfigurations: [CompactConfiguration], _ puzzle:
         }
         let configurations = compactConfigurations[shapeIndex]
         for configuration in configurations.configurations {
-          if let (x, y) = findNextPlacement(state.grid, state.lastPlacement, configuration) {
+          var possiblePlacements = [(x: Int, y: Int)?]()
+          possiblePlacements.append(findNextPlacement(state.grid, nil, state.lastPlacement.y, configuration))
+          possiblePlacements.append(findNextPlacement(state.grid, state.lastPlacement.x + shapeDimension + 1, state.lastPlacement.y, configuration))
+          possiblePlacements.append(findNextPlacement(state.grid, nil, state.lastPlacement.y + 1, configuration))
+          for (x, y) in possiblePlacements.compactMap({ $0 }) {
             let newGrid = state.grid.copy()
             placeShape(newGrid, configuration, x, y)
             if state.remainingToPlace == 1 {
@@ -385,9 +397,12 @@ struct App {
     let shapeConfigurations = calculateDistinctShapeConfigurations(basicShapes)
     let compactShapeConfigs = createCompactConfigurations(shapeConfigurations)
 
+    let totalShapeCombinations = compactShapeConfigs.reduce(0) { $0 + $1.configurations.count }
+    print("There are a total of \(totalShapeCombinations) shape combinations\n")
+
     let result = puzzles.enumerated().reduce(0) { acc, indexAndPuzzle in
       let solvable = solvable(compactShapeConfigs, indexAndPuzzle.element)
-      print("Puzzle \(indexAndPuzzle.offset): \(solvable)")
+      print("Puzzle \(indexAndPuzzle.offset): \(solvable)\n")
       return acc + (solvable ? 1 : 0)
     }
     print(result)
