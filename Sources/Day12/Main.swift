@@ -154,27 +154,85 @@ private func calculateDistinctShapeConfigurations(_ basicShapes: [BasicShape]) -
 
 let blank = Character(".")
 
-private func createInitialGrid(width: Int, height: Int) -> Table<Character> {
-  let table = Table<Character>()
-  for _ in 0..<height {
-    try! table.newRow()
-    for _ in 0..<width {
-      try! table.addElement(element: blank)
-    }
-  }
-  try! table.finaliseRow()
-  return table
-}
+class Grid {
+  var rows: [UInt64]
+  var width: Int
 
-extension Table {
+  init(_ rows: [UInt64], _ width: Int) {
+    self.rows = rows
+    self.width = width
+  }
+
+  func copy() -> Grid {
+    return Grid(self.rows, self.width)
+  }
+
   func output() {
-    self.printTable()
+    for row in rows {
+      let rowString = String(row, radix: 2)
+      let padding = String(repeating: "0", count: 64 - rowString.count)
+      let fullString = "\(padding)\(rowString)"
+      let endIndex = fullString.index(fullString.startIndex, offsetBy: width)
+      print(fullString[..<endIndex])
+    }
     print("")
   }
 }
 
+class CompactShape: CustomStringConvertible {
+  var rows: [UInt8]
+
+  init(_ rows: [UInt8]) {
+    self.rows = rows
+  }
+
+  var description: String {
+    rows.map { String($0, radix: 2) }.joined(separator: "")
+  }
+}
+
+class CompactConfiguration: CustomStringConvertible {
+  let id: Int
+  let configurations: [CompactShape]
+
+  init(id: Int, configurations: [CompactShape]) {
+    self.id = id
+    self.configurations = configurations
+  }
+
+  var description: String {
+    "Shape \(id): \(configurations)"
+  }
+}
+
+private func createCompactConfigurations(_ shapeConfigurations: [ShapeConfiguration]) -> [CompactConfiguration] {
+  let xMap = [
+    -1: UInt8(0b00000100),
+    0: UInt8(0b00000010),
+    1: UInt8(0b00000001)
+  ]
+
+  return shapeConfigurations.map { config in
+    let compactShapes = config.configurations.map { coords in
+      var rows = Array(repeating: UInt8(0), count: 3)
+      for coord in coords {
+        rows[coord.y + 1] |= xMap[coord.x]!
+      }
+      return CompactShape(rows)
+    }
+    return CompactConfiguration(id: config.id, configurations: compactShapes)
+  }
+}
+
+private func createInitialGrid(width: Int, height: Int) -> Grid {
+  if width > 64 {
+    fatalError("Width must be <= 64")
+  }
+  return Grid(Array(repeating: UInt64(0), count: height), width)
+}
+
 struct State {
-  let grid: Table<Character>
+  let grid: Grid
   let remainingShapes: [Int]
   let remainingToPlace: Int
   let lastPlacement: Coord
@@ -186,35 +244,63 @@ class States {
 
 let shapeDimension = 3
 
-private func findNextPlacement(_ grid: Table<Character>, _ lastPlacement: Coord, _ coords: inout [Coord]) -> (x: Int, y: Int)? {
+private func findNextPlacement(_ grid: Grid, _ lastPlacement: Coord, _ shape: CompactShape) -> (x: Int, y: Int)? {
   //shapes are 3x3 centered around 0,0 - we can't put them right at the edge - find the lowest y then x we can place it
   //but there is no point in going all the way to the start - just look a couple back from the last placement
   let startY = max(1, lastPlacement.y - shapeDimension)
   let startX = 1 //always start at the left
-  for y in startY..<(grid.numRows - 1) {
-    inner: for x in startX..<(grid.numColumns - 1) {
-      for coord in coords {
-        let newX = x + coord.x
-        let newY = y + coord.y
-        if grid[newX,newY] != blank {
-          continue inner //can't do this configuration
-        }
+  for y in startY..<(grid.rows.count - 1) {
+    inner: for x in startX..<(grid.width - 1) {
+      //Hardcoding this to 3 rows in the shape
+      let topRow: UInt64 = UInt64(shape.rows[0]) << (64 - shapeDimension - x + 1)
+      //We can only fit bitwise and returns a 0
+      if (topRow & grid.rows[y - 1]) != 0 {
+        continue inner
       }
+      let middleRow: UInt64 = UInt64(shape.rows[1]) << (64 - shapeDimension - x + 1)
+      if (middleRow & grid.rows[y]) != 0 {
+        continue inner
+      }
+      let bottomRow: UInt64 = UInt64(shape.rows[2]) << (64 - shapeDimension - x + 1)
+      if (bottomRow & grid.rows[y + 1]) != 0 {
+        continue inner
+      }
+      //It'll fit
       return (x, y)
     }
   }
   return nil
 }
 
-private func placeShape(_ grid: Table<Character>, _ coords: inout [Coord], _ x: Int, _ y: Int, _ shapeId: Character) {
-  for coord in coords {
-    grid[x + coord.x, y + coord.y] = shapeId
+private func placeShape(_ grid: Grid, _ shape: CompactShape, _ x: Int, _ y: Int) {
+  //Hardcoding this to 3 rows in the shape
+  //bitwise or for the new value
+  let topRow: UInt64 = UInt64(shape.rows[0]) << (64 - shapeDimension - x + 1)
+  grid.rows[y - 1] = grid.rows[y - 1] | topRow
+  let middleRow: UInt64 = UInt64(shape.rows[1]) << (64 - shapeDimension - x + 1)
+  grid.rows[y] = grid.rows[y] | middleRow
+  let bottomRow: UInt64 = UInt64(shape.rows[2]) << (64 - shapeDimension - x + 1)
+  grid.rows[y + 1] = grid.rows[y + 1] | bottomRow
+}
+
+private func precheck(_ configurations: [ShapeConfiguration], _ puzzle: Puzzle) -> Bool {
+  //Simple check to see whether there are enough squares for the puzzle to work
+  let totalSquaresNeeded = puzzle.shapes.enumerated().reduce(0) { (total, indexAndNumber) in
+    let (index, number) = indexAndNumber
+    let shape = configurations[index]
+    return total + (shape.configurations.count * number)
   }
+  return totalSquaresNeeded > puzzle.width * puzzle.height
 }
 
 let maxStates = 100
 
-private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puzzle) -> Bool {
+private func solvable(_ configurations: [ShapeConfiguration], _ puzzle: Puzzle) -> Bool {
+  if !precheck(configurations, puzzle) {
+    print("Precheck failed")
+  }
+
+  let compactShapeConfigs = createCompactConfigurations(configurations)
   let grid = createInitialGrid(width: puzzle.width, height: puzzle.height)
   // grid.output()
 
@@ -237,13 +323,12 @@ private func solvable(_ shapeConfigurations: [ShapeConfiguration], _ puzzle: Puz
         if state.remainingShapes[shapeIndex] == 0 { //no more of this shape
           continue
         }
-        let configurations = shapeConfigurations[shapeIndex]
-        for var configuration in configurations.configurations {
-          if let (x, y) = findNextPlacement(state.grid, state.lastPlacement, &configuration) {
+        let configurations = compactShapeConfigs[shapeIndex]
+        for configuration in configurations.configurations {
+          if let (x, y) = findNextPlacement(state.grid, state.lastPlacement, configuration) {
             let newGrid = state.grid.copy()
-            placeShape(newGrid, &configuration, x, y, shapeConfigurations[shapeIndex].gridId)
+            placeShape(newGrid, configuration, x, y)
             if state.remainingToPlace == 1 {
-              //That's everything - woop woop
               newGrid.output()
               return true
             }
