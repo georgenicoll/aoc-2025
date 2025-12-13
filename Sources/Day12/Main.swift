@@ -194,10 +194,16 @@ class CompactShape: CustomStringConvertible {
 class CompactConfiguration: CustomStringConvertible {
   let id: Int
   let configurations: [CompactShape]
+  let squaresNeededByConfigurations: Int
 
-  init(id: Int, configurations: [CompactShape]) {
+  init(
+    id: Int,
+    configurations: [CompactShape],
+    squaresNeededByConfigurations: Int,
+  ) {
     self.id = id
     self.configurations = configurations
+    self.squaresNeededByConfigurations = squaresNeededByConfigurations
   }
 
   var description: String {
@@ -220,7 +226,11 @@ private func createCompactConfigurations(_ shapeConfigurations: [ShapeConfigurat
       }
       return CompactShape(rows)
     }
-    return CompactConfiguration(id: config.id, configurations: compactShapes)
+    return CompactConfiguration(
+      id: config.id,
+      configurations: compactShapes,
+      squaresNeededByConfigurations: config.configurations.first!.count
+    )
   }
 }
 
@@ -283,24 +293,24 @@ private func placeShape(_ grid: Grid, _ shape: CompactShape, _ x: Int, _ y: Int)
   grid.rows[y + 1] = grid.rows[y + 1] | bottomRow
 }
 
-private func precheck(_ configurations: [ShapeConfiguration], _ puzzle: Puzzle) -> Bool {
+private func precheck(_ configurations: [CompactConfiguration], _ puzzle: Puzzle) -> Bool {
   //Simple check to see whether there are enough squares for the puzzle to work
   let totalSquaresNeeded = puzzle.shapes.enumerated().reduce(0) { (total, indexAndNumber) in
     let (index, number) = indexAndNumber
     let shape = configurations[index]
-    return total + (shape.configurations.count * number)
+    return total + (shape.squaresNeededByConfigurations * number)
   }
-  return totalSquaresNeeded > puzzle.width * puzzle.height
+  return totalSquaresNeeded <= puzzle.width * puzzle.height
 }
 
 let maxStates = 100
 
-private func solvable(_ configurations: [ShapeConfiguration], _ puzzle: Puzzle) -> Bool {
-  if !precheck(configurations, puzzle) {
-    print("Precheck failed")
-  }
+private func solvable(_ compactConfigurations: [CompactConfiguration], _ puzzle: Puzzle) -> Bool {
+  // if !precheck(compactConfigurations, puzzle) {
+  //   print("Precheck failed")
+  //   return false
+  // }
 
-  let compactShapeConfigs = createCompactConfigurations(configurations)
   let grid = createInitialGrid(width: puzzle.width, height: puzzle.height)
   // grid.output()
 
@@ -323,7 +333,7 @@ private func solvable(_ configurations: [ShapeConfiguration], _ puzzle: Puzzle) 
         if state.remainingShapes[shapeIndex] == 0 { //no more of this shape
           continue
         }
-        let configurations = compactShapeConfigs[shapeIndex]
+        let configurations = compactConfigurations[shapeIndex]
         for configuration in configurations.configurations {
           if let (x, y) = findNextPlacement(state.grid, state.lastPlacement, configuration) {
             let newGrid = state.grid.copy()
@@ -370,16 +380,13 @@ struct App {
     let file = getFileSibling(#filePath, "Files/input.txt")
 
     let basicShapes = loadBasicShapes(try! readEntireFile(file))
-    // print(basicShapes)
-
     let puzzles = try! readFileLineByLine(file: file, into: [Puzzle](), loadPuzzle)
-    // print(puzzles)
 
     let shapeConfigurations = calculateDistinctShapeConfigurations(basicShapes)
-    // print(shapeConfigurations)
+    let compactShapeConfigs = createCompactConfigurations(shapeConfigurations)
 
     let result = puzzles.enumerated().reduce(0) { acc, indexAndPuzzle in
-      let solvable = solvable(shapeConfigurations, indexAndPuzzle.element)
+      let solvable = solvable(compactShapeConfigs, indexAndPuzzle.element)
       print("Puzzle \(indexAndPuzzle.offset): \(solvable)")
       return acc + (solvable ? 1 : 0)
     }
