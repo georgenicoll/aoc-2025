@@ -28,7 +28,8 @@ let package = Package(
   ],
   dependencies: [
     // .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0"),
-    .package(url: "https://github.com/apple/swift-collections", from: "1.0.0")
+    .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
+    .package(url: "https://github.com/abdel-17/swift-rational", from: "1.0.0"),
   ],
   targets: [
     .target(name: "Core"),
@@ -42,11 +43,11 @@ let package = Package(
     .executableTarget(name: "Day7", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Day8", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Day9", dependencies: ["Core"], exclude: ["Files/"]),
-    .executableTarget(name: "Day10", dependencies: ["Core"], exclude: [
-      "Files/",
-      "requirements.txt",
-      "main.py",
-    ]),
+    .executableTarget(name: "Day10", dependencies: [
+      "Core",
+      .product(name: "Collections", package: "swift-collections"),
+      .product(name: "RationalModule", package: "swift-rational"),
+    ], exclude: [ "Files/", "requirements.txt", "main.py" ]),
     .executableTarget(name: "Day11", dependencies: ["Core"], exclude: ["Files/"]),
     .executableTarget(name: "Day12", dependencies: ["Core"], exclude: ["Files/"]),
 

@@ -73,3 +73,7 @@ Sources/*/Files/*.txt
 # Python virtual environment for using linear programming solvers
 venv/
 *.lp
+
+# Temporary files
+tmp*
+tmp*/
