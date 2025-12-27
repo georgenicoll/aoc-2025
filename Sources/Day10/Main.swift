@@ -85,29 +85,29 @@ private func part1(_ lines: [PuzzleLine]) -> Int {
   }
 }
 
-typealias MatrixValue = Rational<Int>
-let minusOne = Rational<Int>(-1)
-let zero = Rational<Int>(0)
-let one = Rational<Int>(1)
-// let delta = 0.01
+typealias MatrixValue = Double
+let minusOne = -1.0
+let zero = 0.0
+let one = 1.0
+let delta = 0.001
 
-extension MatrixValue: @retroactive @unchecked Sendable {}
+// extension MatrixValue: @retroactive @unchecked Sendable {}
 
 extension MatrixValue {
   var isNegative: Bool {
-    return self.numerator < 0
+    return !isEffectivelyZero && self < 0
   }
   var isFractional: Bool {
-    return self.denominator != 1
+    return !isEffectivelyZero && abs(self - self.rounded(.toNearestOrAwayFromZero)) > delta
   }
   var asInteger: Int {
-    return self.numerator / self.denominator
+    return Int(self.rounded(.toNearestOrAwayFromZero))
   }
   var isEffectivelyZero: Bool {
-    return self.numerator == 0
+    return abs(self) < delta
   }
   var clean: String {
-    return "\(self)"
+    return String(format:"%.8g", self)
   }
 }
 
@@ -179,7 +179,7 @@ enum Term {
             case .variable(let coeff, let index) where coeff == minusOne :
                 parts.append("-t\(index)")
             case .variable(let coeff, let index):
-                parts.append("\(coeff.clean).t\(index)")
+                parts.append("\(coeff.clean)*t\(index)")
             }
         }
         return parts.joined(separator: " + ")
@@ -428,7 +428,7 @@ private func attributeAndCalculate(
         continue allocationLoop
       case .fractionalValue:
         continue allocationLoop
-      case .none:
+      default:
         break // out of switch
     }
     foundValid = true
