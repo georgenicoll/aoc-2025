@@ -106,6 +106,9 @@ extension MatrixValue {
   var isEffectivelyZero: Bool {
     return self.numerator == 0
   }
+  var clean: String {
+    return "\(self)"
+  }
 }
 
 private func printMatrix(_ matrix: inout [[MatrixValue]]) {
@@ -170,13 +173,13 @@ enum Term {
         for term in terms {
             switch term {
             case .rawValue(let value):
-                parts.append("\(value)")
+                parts.append("\(value.clean)")
             case .variable(let coeff, let index) where coeff == one :
                 parts.append("t\(index)")
             case .variable(let coeff, let index) where coeff == minusOne :
                 parts.append("-t\(index)")
             case .variable(let coeff, let index):
-                parts.append("\(coeff).t\(index)")
+                parts.append("\(coeff.clean).t\(index)")
             }
         }
         return parts.joined(separator: " + ")
@@ -420,6 +423,7 @@ private func attributeAndCalculate(
       case .negativeValue:
         if foundValid {
           // we had a valid one already, we've reached an invalid integer one - that aint going to change so completely bomb
+          print("Breaking at \(newAllocations)")
           break allocationLoop
         }
         continue allocationLoop
@@ -493,6 +497,7 @@ private func calculateMinSolution(_ lineIndex: Int, _ puzzleLine: PuzzleLine, _ 
 
   var minPresses: Int? = nil
   for i in 0...250 {
+    print("Trying \(i) 'total presses'")
     if let (_, presses) = attributeAndCalculate(
       solution: solution,
       level: 1,
@@ -542,8 +547,8 @@ struct App {
 
   static func main() {
     // let file = getFileSibling(#filePath, "Files/example.txt")
-    // let file = getFileSibling(#filePath, "Files/example2.txt")
-    let file = getFileSibling(#filePath, "Files/input.txt")
+    let file = getFileSibling(#filePath, "Files/example2.txt")
+    // let file = getFileSibling(#filePath, "Files/input.txt")
 
     let lines = try! readFileLineByLine(file: file, into: [PuzzleLine](), handleLine)
     // print(lines)
