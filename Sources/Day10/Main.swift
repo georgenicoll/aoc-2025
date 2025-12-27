@@ -432,6 +432,9 @@ private func attributeAndCalculate(
       case .none:
         break // out of switch
     }
+    if !foundValid {
+      print("First valid at \(newAllocations)")
+    }
     foundValid = true
 
     let possibleSolution = attributeAndCalculate(
