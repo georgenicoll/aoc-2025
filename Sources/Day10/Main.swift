@@ -378,7 +378,7 @@ private func violatesConstraints(_ solution: [SolutionLine], _ allocations: inou
     //Calculate the button presses value
     let value = Term.calculateValue(line.terms, allocations.map { MatrixValue($0) })
     //If any variable is negative, we violate constraints
-    if value < 0 {
+    if value.isNegative {
       return .negativeValue
     }
     //If any variable is fractional, we violate constraints
@@ -423,7 +423,6 @@ private func attributeAndCalculate(
       case .negativeValue:
         if foundValid {
           // we had a valid one already, we've reached an invalid integer one - that aint going to change so completely bomb
-          print("Breaking at \(newAllocations)")
           break allocationLoop
         }
         continue allocationLoop
@@ -431,9 +430,6 @@ private func attributeAndCalculate(
         continue allocationLoop
       case .none:
         break // out of switch
-    }
-    if !foundValid {
-      print("First valid at \(newAllocations)")
     }
     foundValid = true
 
@@ -500,7 +496,6 @@ private func calculateMinSolution(_ lineIndex: Int, _ puzzleLine: PuzzleLine, _ 
 
   var minPresses: Int? = nil
   for i in 0...250 {
-    print("Trying \(i) 'total presses'")
     if let (_, presses) = attributeAndCalculate(
       solution: solution,
       level: 1,
@@ -550,8 +545,8 @@ struct App {
 
   static func main() {
     // let file = getFileSibling(#filePath, "Files/example.txt")
-    let file = getFileSibling(#filePath, "Files/example2.txt")
-    // let file = getFileSibling(#filePath, "Files/input.txt")
+    // let file = getFileSibling(#filePath, "Files/example2.txt")
+    let file = getFileSibling(#filePath, "Files/input.txt")
 
     let lines = try! readFileLineByLine(file: file, into: [PuzzleLine](), handleLine)
     // print(lines)
