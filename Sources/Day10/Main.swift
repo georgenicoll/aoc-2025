@@ -393,6 +393,7 @@ private func violatesConstraints(_ solution: [SolutionLine], _ allocations: inou
 // returns the lowest value found, or nil if none found.
 private func attributeAndCalculate(
   solution: [SolutionLine],
+  constraintViolations: inout [[Int]:ViolationType],
   level: Int,
   remainingToAllocate: Int,
   numFreeVars: Int,
@@ -413,13 +414,20 @@ private func attributeAndCalculate(
   //Do the next level
   var bestSolution: ([Int], Int)? = nil
   var foundValid = false
+
   allocationLoop: for i in 0...remainingToAllocate {
 
     var newAllocations = allocations
     newAllocations.append(i)
 
     // If this violates constraints, skip it (and maybe bomb out completely)
-    switch violatesConstraints(solution, &newAllocations) {
+    var violationType = constraintViolations[newAllocations]
+    if violationType == nil {
+      violationType = violatesConstraints(solution, &newAllocations)
+      constraintViolations[newAllocations] = violationType
+    }
+
+    switch violationType! {
       case .negativeValue:
         if foundValid {
           // we had a valid one already, we've reached an invalid integer one - that aint going to change so completely bomb
@@ -435,6 +443,7 @@ private func attributeAndCalculate(
 
     let possibleSolution = attributeAndCalculate(
       solution: solution,
+      constraintViolations: &constraintViolations,
       level: level + 1,
       remainingToAllocate: remainingToAllocate - i,
       numFreeVars: numFreeVars,
@@ -494,10 +503,12 @@ private func calculateMinSolution(_ lineIndex: Int, _ puzzleLine: PuzzleLine, _ 
     return totalPresses
   }
 
+  var constraintViolations = [[Int]:ViolationType]()
   var minPresses: Int? = nil
   for i in 0...250 {
     if let (_, presses) = attributeAndCalculate(
       solution: solution,
+      constraintViolations: &constraintViolations,
       level: 1,
       remainingToAllocate: i,
       numFreeVars: numFreeVars,
