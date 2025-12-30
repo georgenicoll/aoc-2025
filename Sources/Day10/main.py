@@ -34,6 +34,7 @@ def solve(buttonses, joltages) -> float:
 
 def main():
     # file = 'Sources/Day10/Files/example.txt'
+    # file = 'Sources/Day10/Files/example2.txt'
     file = 'Sources/Day10/Files/input.txt'
     total = 0
     with open(file, 'r') as f:

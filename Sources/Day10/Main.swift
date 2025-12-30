@@ -185,7 +185,7 @@ enum Term {
         return parts.joined(separator: " + ")
     }
 
-    static func calculateValue(_ terms: [Term], _ freeVarValues: [MatrixValue]) -> MatrixValue {
+    static func calculateValue(_ terms: [Term], _ freeVarValues: inout [MatrixValue]) -> MatrixValue {
         var result: MatrixValue = zero
         for term in terms {
             switch term {
@@ -365,18 +365,18 @@ enum ViolationType {
     case fractionalValue
 }
 
-private func violatesConstraints(_ solution: [SolutionLine], _ allocations: inout [Int]) -> ViolationType {
+private func violatesConstraints(_ solutionLines: [SolutionLine], _ allocations: inout [MatrixValue]) -> ViolationType {
   // this is a set of the variables indexes that we have
   let variablesInAllocations = Set(0..<allocations.count)
   //Check each line - bottom to top as we should have fewer variables in the bottom lines?
-  for line in solution.reversed() {
+  for line in solutionLines {
     //Do we have all of the values? in this line?
     if !line.variables.isSubset(of: variablesInAllocations) {
       //We don't have all the values yet
       continue
     }
     //Calculate the button presses value
-    let value = Term.calculateValue(line.terms, allocations.map { MatrixValue($0) })
+    let value = Term.calculateValue(line.terms, &allocations)
     //If any variable is negative, we violate constraints
     if value.isNegative {
       return .negativeValue
@@ -392,42 +392,52 @@ private func violatesConstraints(_ solution: [SolutionLine], _ allocations: inou
 // Recursively attributes non-negative integer values to free variables and tries to find a valid solution.
 // returns the lowest value found, or nil if none found.
 private func attributeAndCalculate(
-  solution: [SolutionLine],
-  constraintViolations: inout [[Int]:ViolationType],
+  solutionLinesByHighestLevel: inout [Int:[SolutionLine]],
+  constraintViolations: inout [[MatrixValue]:ViolationType],
   level: Int,
   remainingToAllocate: Int,
   numFreeVars: Int,
-  allocations: [Int],
-  trySolution: ([Int]) -> Int?,
-) -> ([Int], Int)? {
+  allocations: [MatrixValue],
+  trySolution: (inout [MatrixValue]) -> Int?,
+) -> ([MatrixValue], Int)? {
   if level == numFreeVars {
-    //We can calculate
     var newAllocations = allocations
-    newAllocations.append(remainingToAllocate)
-    let presses = trySolution(newAllocations)
+    newAllocations.append(MatrixValue(remainingToAllocate))
+
+    if violatesConstraints(solutionLinesByHighestLevel[level]!, &newAllocations) != .none {
+      return nil
+    }
+
+    //We can calculate
+    let presses = trySolution(&newAllocations)
     if let presses {
       return (newAllocations, presses)
     }
     return nil
   }
 
+  func checkConstraints(_ checkConstraintAllocations: inout [MatrixValue]) -> ViolationType {
+    // If this violates constraints, skip it (and maybe bomb out completely)
+    var violationType = constraintViolations[checkConstraintAllocations]
+    if violationType == nil {
+      violationType = violatesConstraints(solutionLinesByHighestLevel[level]!, &checkConstraintAllocations)
+      constraintViolations[checkConstraintAllocations] = violationType
+    }
+    return violationType!
+  }
+
   //Do the next level
-  var bestSolution: ([Int], Int)? = nil
+  var bestSolution: ([MatrixValue], Int)? = nil
   var foundValid = false
 
   allocationLoop: for i in 0...remainingToAllocate {
 
     var newAllocations = allocations
-    newAllocations.append(i)
+    newAllocations.append(MatrixValue(i))
 
     // If this violates constraints, skip it (and maybe bomb out completely)
-    var violationType = constraintViolations[newAllocations]
-    if violationType == nil {
-      violationType = violatesConstraints(solution, &newAllocations)
-      constraintViolations[newAllocations] = violationType
-    }
-
-    switch violationType! {
+    let violationType = checkConstraints(&newAllocations)
+    switch violationType {
       case .negativeValue:
         if foundValid {
           // we had a valid one already, we've reached an invalid integer one - that aint going to change so completely bomb
@@ -442,7 +452,7 @@ private func attributeAndCalculate(
     foundValid = true
 
     let possibleSolution = attributeAndCalculate(
-      solution: solution,
+      solutionLinesByHighestLevel: &solutionLinesByHighestLevel,
       constraintViolations: &constraintViolations,
       level: level + 1,
       remainingToAllocate: remainingToAllocate - i,
@@ -461,22 +471,19 @@ private func attributeAndCalculate(
 }
 
 private func calculateMinSolution(_ lineIndex: Int, _ puzzleLine: PuzzleLine, _ solution: inout [SolutionLine], _ numFreeVars: Int) -> Int? {
+  // We want to minimise the total number of presses, which is the sum of all variables.
+  let allTerms = Term.collapse(solution.flatMap{ $0.terms })
+  print("Terms to minimize (according to constraints): \(Term.termsString(allTerms))")
 
-  func trySolution(_ allocations: [Int]) -> Int? {
-    //set up the free variables
-    let freeVarValues = allocations.map { MatrixValue($0) }
+  func trySolution(_ allocations: inout [MatrixValue]) -> Int? {
     //Calculate all terms
-    let calculatedPresses = solution.map { Term.calculateValue($0.terms, freeVarValues) }
+    let calculatedPresses = solution.map { Term.calculateValue($0.terms, &allocations) }
     //Calculate the joltages that this produces, keeping a count of the number of presses
     var calculatedJoltages = Array(repeating: 0, count: puzzleLine.joltageRequirement.count)
     var totalPresses = 0
     for (varIndex, buttonPresses) in calculatedPresses.enumerated() {
-      // negative presses make no sense - drop out now
-      if buttonPresses.isNegative {
-        return nil
-      }
-      // fractional presses make no sense - drop out now
-      if buttonPresses.isFractional {
+      // negative or fractional presses make no sense - drop out now
+      if buttonPresses.isNegative || buttonPresses.isFractional {
         return nil
       }
       //Ok apply them all...
@@ -503,16 +510,23 @@ private func calculateMinSolution(_ lineIndex: Int, _ puzzleLine: PuzzleLine, _ 
     return totalPresses
   }
 
-  var constraintViolations = [[Int]:ViolationType]()
+  var constraintViolations = [[MatrixValue]:ViolationType]()
+  var solutionLinesByHighestLevel = solution.reduce(into: [Int:[SolutionLine]]()) { acc, line in
+    let level = (line.variables.max() ?? -1) + 1
+    var linesAtLevel = acc[level] ?? []
+    linesAtLevel.append(line)
+    acc[level] = linesAtLevel
+  }
+
   var minPresses: Int? = nil
   for i in 0...250 {
     if let (_, presses) = attributeAndCalculate(
-      solution: solution,
+      solutionLinesByHighestLevel: &solutionLinesByHighestLevel,
       constraintViolations: &constraintViolations,
       level: 1,
       remainingToAllocate: i,
       numFreeVars: numFreeVars,
-      allocations: [Int](),
+      allocations: [MatrixValue](),
       trySolution: trySolution,
     ) {
       //best so far?
@@ -536,7 +550,8 @@ private func part2(_ lines: [PuzzleLine]) -> Int {
     let increment: Int
     if numFreeVars < 1 {
       //We should already have the solution
-      let presses = solution.reduce(0) { $0 + Term.calculateValue($1.terms, []) }
+      var allocations = [MatrixValue]()
+      let presses = solution.reduce(0) { $0 + Term.calculateValue($1.terms, &allocations) }
       print("Direct solution for line \(indexAndLine.offset): \(presses)\n")
       increment = presses.asInteger
     } else {
